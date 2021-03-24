@@ -1,59 +1,51 @@
 package sparkJob.sparkCore.service.impl;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.mapred.lib.CombineTextInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.Row;
-import org.apache.spark.sql.SparkSession;
-import org.apache.spark.sql.types.DataTypes;
-import org.apache.spark.sql.types.StructField;
-import org.apache.spark.sql.types.StructType;
-import org.apache.spark.storage.StorageLevel;
 import sparkJob.SparkApp;
 import sparkJob.hdfs.SystemFile;
-import sparkJob.mysql.DPMysql;
 import sparkJob.sparkCore.domain.RuleJson;
-import sparkJob.sparkCore.service.sparkService;
+import sparkJob.sparkCore.service.SparkService;
 import sparkJob.sparkStreaming.KafkaStreaming;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
+import java.util.ResourceBundle;
 
-public class sparkDemo implements sparkService {
+/**
+ * sparkCode 实现逻辑demo
+ */
+public class SparkDemo implements SparkService {
 
     @Override
     public <T> T execute(Map<String, Object> var) throws Exception {
 
         RuleJson value = SparkApp.ruleJsonBroadcast.value();
-
+        ResourceBundle resourceBundle = ResourceBundle.getBundle("ProPermissionManager");
+        String mysqlUrl = resourceBundle.getString("mysqlUrl");
+        System.out.println(mysqlUrl);
         //读写本地文件
-//        JavaRDD<String> stringJavaRDD = SystemFile.readSystemFile(value.getFileInPath(), 1);
-//
+        JavaRDD<String> stringJavaRDD = SystemFile.readSystemFile(value.getFileInPath(), 1);
+        stringJavaRDD.take(10).forEach(r -> System.out.println(r));
+        System.out.println(value.getFileOutPath());
+
 //        SystemFile.saveSystemFile(stringJavaRDD,value.getFileOutPath());
 
-//        JavaPairRDD<String, String> stringStringJavaPairRDD = stringJavaRDD.keyBy(r -> r);
+        JavaPairRDD<String, String> stringStringJavaPairRDD = stringJavaRDD.keyBy(r -> r);
 
         // spark 写 hdfs
-//        Configuration hadoopConf = stringStringJavaPairRDD.context().hadoopConfiguration();
-//        hadoopConf.set("mapreduce.output.fileoutputformat.compress", "true");
-//        hadoopConf.set("mapreduce.output.fileoutputformat.compress.codec", "org.apache.hadoop.io.compress.GzipCodec");
-//        hadoopConf.set("mapreduce.output.fileoutputformat.compress.type", "BLOCK");
-//        stringStringJavaPairRDD.saveAsNewAPIHadoopFile("D:\\1", CombineTextInputFormat.class, CombineTextInputFormat.class, StreamingDataGzipOutputFormat.class);
-//
-        JavaRDD<Row> rowJavaRDD = DPMysql.rddRead("(select * from bigdata.user where 1=1) tmp");
-
-        SparkSession session = SparkApp.getSession();
-        List<StructField> fields = new ArrayList<>();
-        fields.add(DataTypes.createStructField("name", DataTypes.StringType, true));
-        fields.add(DataTypes.createStructField("sex", DataTypes.StringType, true));
-        fields.add(DataTypes.createStructField("age", DataTypes.StringType, true));
-        StructType structType = DataTypes.createStructType(fields);
-        Dataset<Row> dataFrame = session.createDataFrame(rowJavaRDD, structType);
-        dataFrame.createOrReplaceTempView("chenjian");
-        Dataset<Row> sql = session.sql("select * from chenjian");
-        sql.show();
-        DPMysql.commonOdbcWriteBatch("user", sql);
+        Configuration hadoopConf = stringStringJavaPairRDD.context().hadoopConfiguration();
+        hadoopConf.set("mapreduce.output.fileoutputformat.compress", "true");
+        hadoopConf.set("mapreduce.output.fileoutputformat.compress.codec", "org.apache.hadoop.io.compress.GzipCodec");
+        hadoopConf.set("mapreduce.output.fileoutputformat.compress.type", "BLOCK");
+        stringStringJavaPairRDD.saveAsNewAPIHadoopFile("hdfs://172.17.0.3:9000/user",
+                CombineTextInputFormat.class,
+                CombineTextInputFormat.class,
+                TextOutputFormat.class);
+        System.out.println("----------------------------------");
+        stringJavaRDD.saveAsTextFile(value.getFileOutPath());
 
         return null;
     }

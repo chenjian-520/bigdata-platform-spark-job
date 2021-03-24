@@ -5,7 +5,6 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.Function;
-import org.apache.spark.sql.streaming.StreamingQueryManager;
 import org.apache.spark.streaming.Duration;
 import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.api.java.JavaDStream;
@@ -22,6 +21,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * kafka整合sparkStreaming 封装工具类，调用startJob 启动任务。具体逻辑实现sparkService接口重新streaming方法。
+ */
 public class KafkaStreaming implements Serializable {
     private Map kafkaParams;
     private Collection topics;

@@ -2,8 +2,6 @@ package sparkJob;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.broadcast.Broadcast;
@@ -12,10 +10,13 @@ import org.apache.spark.util.CollectionAccumulator;
 import scala.Serializable;
 import sparkJob.common.PermissionManager;
 import sparkJob.sparkCore.domain.RuleJson;
-import sparkJob.sparkCore.service.sparkService;
+import sparkJob.sparkCore.service.SparkService;
 import sparkJob.sparkStreaming.KafkaStreaming;
 import sparkJob.sparkStreaming.domain.DPKafkaInfo;
 
+/**
+ * SparkJob 启动入口类，加载必要对象和配置。
+ */
 public class SparkApp implements Serializable {
 
     public static CollectionAccumulator<SparkSession> sessionBroadcast;
@@ -70,11 +71,11 @@ public class SparkApp implements Serializable {
                 KafkaStreaming kafkaStreaming = new KafkaStreaming();
                 kafkaStreaming.init();
                 Class<?> serviceclazz = Class.forName(appParam.getString("sericeName"));
-                sparkService sparkservice = (sparkService) serviceclazz.newInstance();
+                SparkService sparkservice = (SparkService) serviceclazz.newInstance();
                 sparkservice.streaming(appParam, kafkaStreaming);
             } else {
                 Class<?> serviceclazz = Class.forName(appParam.getString("sericeName"));
-                sparkService sparkservice = (sparkService) serviceclazz.newInstance();
+                SparkService sparkservice = (SparkService) serviceclazz.newInstance();
                 sparkservice.execute(appParam);
             }
 

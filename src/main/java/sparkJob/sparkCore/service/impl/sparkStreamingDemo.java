@@ -1,17 +1,15 @@
 package sparkJob.sparkCore.service.impl;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.util.CollectionAccumulator;
 import sparkJob.SparkApp;
-import sparkJob.sparkCore.service.sparkService;
+import sparkJob.sparkCore.service.SparkService;
 import sparkJob.sparkStreaming.KafkaSink;
 import sparkJob.sparkStreaming.KafkaStreaming;
 
 import java.util.*;
 
-public class sparkStreamingDemo implements sparkService {
+public class SparkStreamingDemo implements SparkService {
     @Override
     public <T> T execute(Map<String, Object> var) throws Exception {
         return null;

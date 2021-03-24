@@ -6,53 +6,37 @@ import org.slf4j.LoggerFactory;
 import sparkJob.SparkApp;
 import sparkJob.mysql.entity.DBConnectionInfo;
 import sparkJob.sparkStreaming.domain.DPKafkaInfo;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Serializable;
-import java.nio.charset.StandardCharsets;
-import java.util.Properties;
+import java.util.ResourceBundle;
 
-
+/**
+ * 配置类
+ */
 public class ProdPermissionManager implements PermissionManager, Serializable {
 
-    private static Properties prop = new Properties();
-    private static final Logger logger = LoggerFactory.getLogger(ProdPermissionManager.class);
+    private static ResourceBundle resourceBundle = ResourceBundle.getBundle("ProPermissionManager");
 
     public ProdPermissionManager() {
     }
 
-    static {
-        init();
-    }
-
-    private static void init() {
-        try (InputStream propFile = ProdPermissionManager.class.getResource("../../ProPermissionManager.properties").openStream()) {
-            prop.load(new InputStreamReader(propFile, StandardCharsets.UTF_8));
-        } catch (IOException e) {
-            logger.error("ProPermissionManager init exception");
-        }
-    }
-
     public DBConnectionInfo getMysqlInfo() {
         DBConnectionInfo dbConnectionInfo = new DBConnectionInfo();
-        dbConnectionInfo.setUrl(prop.getProperty("mysqlUrl"));
-        dbConnectionInfo.setUsername(prop.getProperty("mysqlUsername"));
-        dbConnectionInfo.setPassword(prop.getProperty("mysqlPassword"));
+        dbConnectionInfo.setUrl(resourceBundle.getString("mysqlUrl"));
+        dbConnectionInfo.setUsername(resourceBundle.getString("mysqlUsername"));
+        dbConnectionInfo.setPassword(resourceBundle.getString("mysqlPassword"));
         return dbConnectionInfo;
     }
 
     public DBConnectionInfo getSqlserverInfo() {
         DBConnectionInfo dbConnectionInfo = new DBConnectionInfo();
-        dbConnectionInfo.setUrl(prop.getProperty("serverSqlUrl"));
-        dbConnectionInfo.setUsername(prop.getProperty("serverUsername"));
-        dbConnectionInfo.setPassword(prop.getProperty("serverPassword"));
+        dbConnectionInfo.setUrl(resourceBundle.getString("serverSqlUrl"));
+        dbConnectionInfo.setUsername(resourceBundle.getString("serverUsername"));
+        dbConnectionInfo.setPassword(resourceBundle.getString("serverPassword"));
         return dbConnectionInfo;
     }
 
     public String getRootHdfsUri() {
-        return prop.getProperty("hdfsUri");
+        return resourceBundle.getString("hdfsUri");
     }
 
     public Configuration initialHdfsSecurityContext() {
@@ -63,7 +47,7 @@ public class ProdPermissionManager implements PermissionManager, Serializable {
     @Override
     public DPKafkaInfo initialKafkaSecurityContext() {
         DPKafkaInfo dpKafkaInfo = SparkApp.getDPKafkaInfo();
-        dpKafkaInfo.setServerUrl(prop.getProperty("kafkaServerUrl"));
+        dpKafkaInfo.setServerUrl(resourceBundle.getString("kafkaServerUrl"));
         return dpKafkaInfo;
     }
 }

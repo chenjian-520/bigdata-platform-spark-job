@@ -10,13 +10,17 @@ import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.util.Enumeration;
 import java.util.Properties;
+import java.util.ResourceBundle;
 import java.util.Vector;
 
+/**
+ * mysql 连接池
+ */
 public class ConnectionPool implements Serializable {
 
     private static final Logger logger = LoggerFactory.getLogger(ConnectionPool.class);
 
-    private static Properties prop = new Properties();
+    private static ResourceBundle resourceBundle = ResourceBundle.getBundle("ProPermissionManager");
 
     private static String jdbcDriver = ""; // 数据库驱动
 
@@ -46,18 +50,13 @@ public class ConnectionPool implements Serializable {
      * 构造函数
      */
     private ConnectionPool() {
-        try (InputStream propFile = DPMysql.class.getResource("../../ProPermissionManager.properties").openStream()) {
-            prop.load(new InputStreamReader(propFile, StandardCharsets.UTF_8));
-        } catch (IOException e) {
-            logger.error("mysql init exception");
-        }
-        this.jdbcDriver = prop.getProperty("driver");
-        this.dbUrl = prop.getProperty("mysqlUrl");
-        this.dbUsername = prop.getProperty("mysqlUsername");
-        this.dbPassword = prop.getProperty("mysqlPassword");
-        this.initialConnections = Integer.parseInt(prop.getProperty("initialConnections"));
-        this.initialConnections = Integer.parseInt(prop.getProperty("incrementalConnections"));
-        this.initialConnections = Integer.parseInt(prop.getProperty("maxConnections"));
+        this.jdbcDriver = resourceBundle.getString("driver");
+        this.dbUrl = resourceBundle.getString("mysqlUrl");
+        this.dbUsername = resourceBundle.getString("mysqlUsername");
+        this.dbPassword = resourceBundle.getString("mysqlPassword");
+        this.initialConnections = Integer.parseInt(resourceBundle.getString("initialConnections"));
+        this.initialConnections = Integer.parseInt(resourceBundle.getString("incrementalConnections"));
+        this.initialConnections = Integer.parseInt(resourceBundle.getString("maxConnections"));
     }
 
     /**

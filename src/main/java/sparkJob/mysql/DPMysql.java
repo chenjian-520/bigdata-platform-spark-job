@@ -36,21 +36,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class DPMysql {
     private static final Logger logger = LoggerFactory.getLogger(DPMysql.class);
     private static final String ERROR_MES = "未找到数据库连接配置信息";
-    private static Properties prop = new Properties();
+    private static ResourceBundle resourceBundle = ResourceBundle.getBundle("ProPermissionManager");
 
     public DPMysql() {
-    }
-
-    static {
-        init();
-    }
-
-    private static void init() {
-        try (InputStream propFile = DPMysql.class.getResource("../../ProPermissionManager.properties").openStream()) {
-            prop.load(new InputStreamReader(propFile, StandardCharsets.UTF_8));
-        } catch (IOException e) {
-            logger.error("mysql init exception");
-        }
     }
 
     /**
@@ -63,7 +51,7 @@ public class DPMysql {
      */
     protected static JavaRDD<Row> rddRead(String dburl, String dbuser, String dbPassword, String query) {
         SparkSession sparkSession = SparkApp.getSession();
-        Dataset<Row> dataset = sparkSession.read().format("jdbc").option("url", dburl).option("driver", prop.getProperty("driver")).option("user", dbuser).option("password", dbPassword).option("dbtable", query).load();
+        Dataset<Row> dataset = sparkSession.read().format("jdbc").option("url", dburl).option("driver", resourceBundle.getString("driver")).option("user", dbuser).option("password", dbPassword).option("dbtable", query).load();
         return dataset.toJavaRDD();
     }
 
@@ -178,7 +166,7 @@ public class DPMysql {
     }
 
     /**
-     * 直接使用dataset写入，使用在海量数据性能较低
+     * 直接使用dataset写入，使用在海量数据性能较低 推荐使用commonDatasetWriteBatch
      */
     protected static void commonOdbcWriteBatch(final String dburl, final String dbuser, final String dbPassword, final String mysqltablename, Dataset ds) {
         StructType structType = ds.schema();
@@ -280,11 +268,17 @@ public class DPMysql {
         });
     }
 
+    /**
+     * 直接使用dataset写入，使用在海量数据性能较低 推荐使用commonDatasetWriteBatch
+     */
     public static void commonOdbcWriteBatch(String mysqltablename, Dataset ds) {
         DBConnectionInfo dbConnectionInfo = SparkApp.getDpPermissionManager().getMysqlInfo();
         commonOdbcWriteBatch(dbConnectionInfo.getUrl(), dbConnectionInfo.getUsername(), dbConnectionInfo.getPassword(), mysqltablename, ds);
     }
 
+    /**
+     * 直接使用dataset写入，使用在海量数据性能较低 推荐使用commonDatasetWriteBatch
+     */
     public static void commonOdbcWriteBatch(RDBConnetInfo rdbConnetInfo, String mysqltablename, Dataset ds) throws Exception {
         if (rdbConnetInfo == null) {
             throw new Exception("未找到数据库连接配置信息");
@@ -556,6 +550,14 @@ public class DPMysql {
         SparkSession sparkSession = SparkApp.getSession();
         StructType rowAgeNameSchema = DataTypes.createStructType(fieldList);
         Dataset<Row> insertdataDs = sparkSession.createDataFrame(insertdata, rowAgeNameSchema);
+        Properties connectionProperties = new Properties();
+        connectionProperties.put("user", dbuser);
+        connectionProperties.put("password", dbPassword);
+        insertdataDs.write().mode(saveMode).jdbc(dburl, tablename, connectionProperties);
+    }
+
+    public static void commonDatasetWriteBatch(String dburl, String dbuser, String dbPassword, String tablename, Dataset<Row> insertdataDs, SaveMode saveMode) {
+        SparkSession sparkSession = SparkApp.getSession();
         Properties connectionProperties = new Properties();
         connectionProperties.put("user", dbuser);
         connectionProperties.put("password", dbPassword);

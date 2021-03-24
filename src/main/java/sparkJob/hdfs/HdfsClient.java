@@ -16,15 +16,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sparkJob.SparkApp;
 import sparkJob.common.PermissionManager;
-
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
-import java.util.Properties;
+import java.util.ResourceBundle;
 
 public final class HdfsClient {
     /**
@@ -56,7 +52,7 @@ public final class HdfsClient {
     /**
      * spark 属性配置
      */
-    private static Properties props = new Properties();
+    private static ResourceBundle resourceBundle = ResourceBundle.getBundle("hdfs-client");
 
     /**
      * 私有化构造器
@@ -79,14 +75,9 @@ public final class HdfsClient {
      * 初始化
      */
     private static void init() {
-        try (InputStream propsFile = HdfsClient.class.getResource("../../hdfs-client.properties").openStream()) {
-            props.load(new InputStreamReader(propsFile, StandardCharsets.UTF_8));
-        } catch (IOException e) {
-            LOGGER.error("hdfs-client init  error! ");
-        }
         conf = new Configuration();
-        conf.addResource(props.getProperty("hdfsSitePath"));
-        conf.addResource(props.getProperty("coreSitePath"));
+        conf.addResource(resourceBundle.getString("hdfsSitePath"));
+        conf.addResource(resourceBundle.getString("coreSitePath"));
         try {
             initHDFSFileSystem();
         } catch (IOException e) {
@@ -259,9 +250,9 @@ public final class HdfsClient {
      */
     private void authentication() throws IOException {
         if ("kerberis".equalsIgnoreCase(conf.get("hadoop.security.authentication"))) {
-            conf.set(PRINCIPAL, props.getProperty("principal"));
-            conf.set(KEYTAB, props.getProperty("keytab"));
-            System.setProperty("java.security.krb5.conf", props.getProperty("krb5"));
+            conf.set(PRINCIPAL, resourceBundle.getString("principal"));
+            conf.set(KEYTAB, resourceBundle.getString("keytab"));
+            System.setProperty("java.security.krb5.conf", resourceBundle.getString("krb5"));
             UserGroupInformation.setConfiguration(conf);
             UserGroupInformation.loginUserFromKeytab(conf.get(PRINCIPAL), conf.get(KEYTAB));
         }

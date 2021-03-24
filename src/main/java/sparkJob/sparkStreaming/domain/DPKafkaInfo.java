@@ -3,6 +3,9 @@ package sparkJob.sparkStreaming.domain;
 import com.alibaba.fastjson.JSONObject;
 import scala.Serializable;
 
+/**
+ * kafka 配置信息类
+ */
 public class DPKafkaInfo implements Serializable {
     private String serverUrl;
     private String topics;
