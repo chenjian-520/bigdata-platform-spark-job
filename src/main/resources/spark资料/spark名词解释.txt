@@ -1,0 +1,68 @@
+Spark核心概念解释
+	Application
+		就是我们通过spark-submit提交的一个spark应用程序，在这一个spark应用程序中可以包含有非常多的Job作业。
+	spark-submit
+		用于提交spark作业的脚本,在该脚本中主要配置的就是spark作业运行所需要的各个资源参数
+		$SPARK_HOME/bin/spark-submit 
+			--driver-memory 1g	\
+			--executor-memory 1g \
+			--executor-nums 2 \
+			--master   yarn	\
+			--deploy-mode cluster \
+		通过命令free
+		df -lh
+		du -h
+		top
+		ps
+	Driver
+		用于创建SparkContext，通过SparkContext组织spark的业务操作的那个主函数我们就称之Spark应用的Driver
+		除了Spark Transformation和Action之外的都是Driver的部分。Driver和Executor是不同的进程，可以将Driver
+		理解为本地程序，将Executor理解为远程计算程序。
+	SparkContext
+		是整个Spark程序的入口，因为我们通过SparkContext可以创建RDD，只有通过SparkRDD才能执行Transformation操作等等。
+		在SparkContext中还有非常重要的角色，就是，创建DAGScheduler和TaskScheduler，还有不是很重要的SparkUI。
+		不同版本或者不同语言都有不同的SparkContext的实例对象，比如java就是JavaSparkContext，scala就是SparkContext
+	ClusterManager
+		是Spark(集群)自身调度程序中要用到的主节点，主要用作spark整体资源管理，接受spark应用的driver的提交任务，给从节点
+		Worker分配任务。接受worker的注册，管理worker分配driver提交任务。
+		在yarn中就是ResourceManager，在standalone中就是Master
+	Worker
+		就是Spark集群中的从节点，是管理当前机器上面的资源的调度，需要向Master进行注册，接受Master的分配的任务，在本节点上
+		启动相关的Spark作业.
+		所其的作用就是yarn集群中的NodeManager
+	Executor
+		是Worker上面运行的进程，是Driver向Master注册申请的要执行Spark作业的，然后由Master指定在对应的Worker上面启动的进程，
+		需要向Driver进行反向注册。一个Executor只对一个Driver(Application)服务，一个Driver则需要若干Executor来完成Spark作业。
+	Job
+		就是通过Spark Action操作，触发一次Spark Transformation的执行，如此便启动了一次spark的作业。所以一个Spark Application中
+		可以有若干Spark Job。一次Action操作，就是一个Job。
+	DAGScheduler
+		是在SparkContext中构建的，用于进行Spark作业阶段Stage划分的核心的对象，然后对每一个阶段组织一批taskset(封装了序列化的我们
+		编写的transformation的代码)，然后交付给TaskScheduler，让其分发给向Driver反向注册了的Executor。
+	TaskScheduler
+		接收DAGScheduler发送的taskSet分发给向Driver反向注册了的Executor，如果在运行过程中失败，从新发送一次。
+	ShuffleMapTask and ResultTask
+		Spark应用中有若干Task任务，我们把这若干任务分为两种：ShuffleMapTask和ResultTask。
+		ShuffleMapTask对应了窄依赖(Narrow Dependency)操作
+		ResultTask对应了宽依赖(Wide/Shuffle Dependency)操作
+		二者共同完成的Spark作业的阶段的划分。
+-------------------------------------------------------------------------------------------		
+Spark运行架构原理剖析
+Spark阶段stage划分算法
+Spark-on-yarn模式
+SparkContext构建图例
+SparkContext构建之SparkConf源码剖析
+	可以通过spark.scheduler.mode配置spark作业的调度模式，默认为FIFO，还可以配置FAIR
+SparkContext之向Master注册
+Spark MasterHA切换过程
+	https://www.liaoxuefeng.com/
+worker节点启动过程源码分析
+driver的启动过程
+executor的启动过程
+spark job的提交
+spark task任务提交执行过程
+spark task内部执行过程	
+
+
+
+
